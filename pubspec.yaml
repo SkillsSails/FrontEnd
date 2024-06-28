@@ -1,0 +1,47 @@
+name: safypower_app
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.6
+  dio: ^5.4.3+1
+  google_sign_in: ^6.2.1
+  google_maps_flutter: ^2.7.0
+  universal_io: ^2.0.4
+  flutter_map: ^7.0.1
+  url_launcher: ^6.3.0
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo.png
+    - assets/images/google_icon.png
+    - assets/images/apple_icon.png
+    - assets/images/email_icon.png
+    - assets/images/power.png
+    - assets/images/station.png
+
+  fonts:
+    - family: Rubik
+      fonts:
+        - asset: assets/fonts/Rubik-Regular.ttf
+        - asset: assets/fonts/Rubik-Bold.ttf
+          weight: 700
+
+
+  
