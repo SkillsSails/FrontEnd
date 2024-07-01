@@ -1,18 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SignupPage extends StatelessWidget {
   final TextEditingController phoneController = TextEditingController();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<void> _sendVerificationCode() async {
-    Get.toNamed('/verify'); 
+    Get.toNamed('/verify');
+  }
+
+  Future<void> _handleSignIn() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser != null) {
+ 
+        print('Google User: ${googleUser.displayName}, ${googleUser.email}');
+        Get.toNamed('/home'); 
+      } else {
+        print('Google sign-in cancelled.');
+      }
+    } catch (error) {
+      print('Google sign-in error: $error');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFEEEEEE), 
+      backgroundColor: Color(0xFFEEEEEE),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -20,7 +37,7 @@ class SignupPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Image.asset(
-              'assets/images/logo.png', 
+              'assets/images/logo.png',
               height: 150,
             ),
             const SizedBox(height: 20),
@@ -30,7 +47,7 @@ class SignupPage extends StatelessWidget {
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Rubik',
-                color: Color(0xFF1E1E1E), 
+                color: Color(0xFF1E1E1E),
               ),
               textAlign: TextAlign.center,
             ),
@@ -40,7 +57,7 @@ class SignupPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontFamily: 'Rubik',
-                color: Color(0xFF687890), 
+                color: Color(0xFF687890),
               ),
               textAlign: TextAlign.center,
             ),
@@ -56,7 +73,7 @@ class SignupPage extends StatelessWidget {
                 hintText: 'Numéro de téléphone',
                 hintStyle: const TextStyle(
                   color: Color(0xFFC4C4C4),
-                  fontSize: 16, 
+                  fontSize: 16,
                 ),
                 filled: true,
                 fillColor: Colors.white,
@@ -74,7 +91,7 @@ class SignupPage extends StatelessWidget {
             ElevatedButton(
               onPressed: _sendVerificationCode,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF799CF0), 
+                backgroundColor: Color(0xFF799CF0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -95,7 +112,7 @@ class SignupPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontFamily: 'Rubik',
-                color: Color(0xFF687890), 
+                color: Color(0xFF687890),
               ),
               textAlign: TextAlign.center,
             ),
@@ -104,12 +121,10 @@ class SignupPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
-                  onTap: () {
-                    // Handle Google sign-up
-                  },
+                  onTap: _handleSignIn, // Handle Google sign-up
                   child: Image.asset(
-                    'assets/images/google_icon.png', 
-                    height: 40, 
+                    'assets/images/google_icon.png',
+                    height: 40,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -118,8 +133,8 @@ class SignupPage extends StatelessWidget {
                     // Handle Apple sign-up
                   },
                   child: Image.asset(
-                    'assets/images/apple_icon.png', 
-                    height: 40, 
+                    'assets/images/apple_icon.png',
+                    height: 40,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -128,8 +143,8 @@ class SignupPage extends StatelessWidget {
                     // Handle email sign-up
                   },
                   child: Image.asset(
-                    'assets/images/email_icon.png', 
-                    height: 40, 
+                    'assets/images/email_icon.png',
+                    height: 40,
                   ),
                 ),
               ],

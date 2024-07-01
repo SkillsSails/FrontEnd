@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:safypower_app/pages/Qrcode_page.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -42,11 +43,14 @@ class HomePage extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 60),
             ElevatedButton.icon(
-              onPressed: () {
-                
-              },
+              onPressed: ()  {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => QrcodePage()),
+                  );
+                },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF132FBA), 
                 shape: RoundedRectangleBorder(
@@ -64,7 +68,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 60),
             ElevatedButton(
               onPressed: () {
                 Get.toNamed('/faq');

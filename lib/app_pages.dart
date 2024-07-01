@@ -1,4 +1,9 @@
 import 'package:get/get.dart';
+import 'package:safypower_app/pages/Photo2_Page.dart';
+import 'package:safypower_app/pages/Photo3_Page';
+import 'package:safypower_app/pages/Qrcode_page.dart';
+import 'package:safypower_app/pages/centreaide_page.dart';
+import 'package:safypower_app/pages/launch_screen.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'pages/map_page.dart';
@@ -12,6 +17,11 @@ import 'pages/contact_page.dart';
 
 class AppPages {
   static final pages = [
+    GetPage(name: '/qr3', page: () => Photo3Page()),
+    GetPage(name: '/qr2', page: () => Photo2Page()),
+    GetPage(name: '/aide', page: () => centreaidePage()),
+    GetPage(name: '/qr', page: () => QrcodePage()),
+    GetPage(name: '/splash', page: () => LaunchScreen()),
     GetPage(name: '/home', page: () => HomePage()),
     GetPage(name: '/login', page: () => LoginPage()),
     GetPage(name: '/map', page: () => MapPage()),

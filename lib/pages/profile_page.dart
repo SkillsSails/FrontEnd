@@ -53,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 20),
               const Text(
-                'Votre Profil',
+                'Votre profil',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
