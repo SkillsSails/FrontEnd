@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:safypower_app/pages/Photo3_Page';
 import 'package:safypower_app/pages/centreaide_page.dart';
+import 'package:safypower_app/pages/conditions-generale-Page.dart';
 import 'package:safypower_app/pages/faq_page.dart';
+import 'package:safypower_app/styles/styles.dart';
 
 
 class Photo2Page extends StatelessWidget {
@@ -22,35 +24,24 @@ class Photo2Page extends StatelessWidget {
             ),
           
             const SizedBox(height: 20),
-            const Text(
+         Text(
               'Emplacement',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Rubik',
-                  color: Color(0xFF687890), ),textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 18, color: Styles.defaultGreyColor, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
             const Text(
               'SafyPower - Monoprix',
-              style: TextStyle(
-                  fontSize: 23,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Rubik',
-                  color: Color(0xFF000000), ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
             RichText(
               textAlign: TextAlign.center,
-              text: const TextSpan(
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Rubik',
-                  color: Color.fromARGB(255, 0, 0, 0), ),
+              text: TextSpan(
+                style: TextStyle(fontSize: 18, color: Styles.defaultGreyColor),
                 children: [
-                  TextSpan(
-                    text: 'Prix: ',
+                  const TextSpan(
+                    text: 'Prix : ',
                   ),
                   TextSpan(
                     text: 'Gratuit',
@@ -61,8 +52,8 @@ class Photo2Page extends StatelessWidget {
               ),
             ),
                 const SizedBox(height: 6),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 'En poursuivant la réservation, vous vous engagez à accepter nos ',
                 textAlign: TextAlign.center,
@@ -70,23 +61,23 @@ class Photo2Page extends StatelessWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Rubik',
-                  color: Color.fromARGB(255, 0, 0, 0), ),
+                  color: Color(0xFF687890), ),
               ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => centreaidePage()),
+                  MaterialPageRoute(builder: (context) => conditiongeneralePage()),
                 );
               },
-              child: const Text(
+              child: Text(
                 'Conditions Générales d\'Utilisation',
                 style: TextStyle(
+                  color: Styles.defaultBlueColor,
+                  decoration: TextDecoration.underline,
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Rubik',
-                  color: Color.fromRGBO(121, 157, 240, 1), ),
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -106,7 +97,9 @@ class Photo2Page extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromRGBO(121, 157, 240, 1),
-                
+                  shape: RoundedRectangleBorder(
+                    borderRadius: Styles.defaultBorderRadius,
+                  ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), 
                 ),
               ),
@@ -128,7 +121,9 @@ class Photo2Page extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromRGBO(121, 157, 240, 1),
-               
+                  shape: RoundedRectangleBorder(
+                    borderRadius: Styles.defaultBorderRadius,
+                  ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), 
                 ),
               ),

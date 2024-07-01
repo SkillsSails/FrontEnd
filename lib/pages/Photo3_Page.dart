@@ -38,9 +38,9 @@ class Photo3Page extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(
                     Icons.check_circle,
                     color: Colors.green,
