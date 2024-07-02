@@ -1,29 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
-
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController phoneController = TextEditingController();
-    final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final TextEditingController passwordController = TextEditingController();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   bool rememberMe = false;
-
-
 
   Future<void> _handleSignIn() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser != null) {
- 
         print('Google User: ${googleUser.displayName}, ${googleUser.email}');
-        Get.toNamed('/home'); 
+        Get.toNamed('/home');
       } else {
         print('Google sign-in cancelled.');
       }
@@ -31,10 +28,11 @@ class _LoginPageState extends State<LoginPage> {
       print('Google sign-in error: $error');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFEEEEEE),
+      backgroundColor: Color.fromARGB(255, 188, 219, 223),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -42,13 +40,9 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.asset(
-                'assets/images/logo.png',
-                height: 150,
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
               const Text(
-                'Connectez-vous',
+                'Welcome on board',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -57,17 +51,25 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 20),
+              Image.asset(
+                'assets/images/logo2.png',
+                height: 150,
+              ),
+              const SizedBox(height: 20),
+        
               const SizedBox(height: 10),
+          
+              const SizedBox(height: 20),
               const Text(
-                'Veuillez renseigner votre numéro de téléphone',
+                'Login',
                 style: TextStyle(
                   fontSize: 16,
                   fontFamily: 'Rubik',
-                  color: Color(0xFFC4C4C4),
+                  color: Color(0xFF1E1E1E),
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               TextField(
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
@@ -93,23 +95,78 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 20),
+              const Text(
+                'Password',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'Rubik',
+                  color: Color(0xFF1E1E1E),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Mot de passe',
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF687890),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(
+                    Icons.lock,
+                    color: Color(0xFF687890),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+           
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Get.offAllNamed('/home');
+                  // Handle CV upload
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF799CF0),
+                  backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
+                    side: BorderSide(color: Color(0xFF799CF0)),
                   ),
                   padding: EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text(
-                  'Se Connecter',
+                  'Upload CV (PDF)',
                   style: TextStyle(
                     fontSize: 16,
                     fontFamily: 'Rubik',
-                    color: Colors.white,
+                    color: Color(0xFF799CF0),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Get.toNamed('/signup');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    side: BorderSide(color: Color(0xFF799CF0)),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text(
+                  'Register',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Rubik',
+                    color: Color(0xFF799CF0),
                   ),
                 ),
               ),
