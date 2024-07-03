@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
 
 
-import 'package:safypower_app/pages/centreaide_page.dart';
-import 'package:safypower_app/pages/conditions-generale-Page.dart';
-import 'package:safypower_app/pages/launch_screen.dart';
+import 'package:skillssails/pages/centreaide_page.dart';
+import 'package:skillssails/pages/conditions-generale-Page.dart';
+import 'package:skillssails/pages/launch_screen.dart';
 
 import 'pages/login_page.dart';
 

@@ -14,13 +14,13 @@ class Styles {
   static BorderRadius defaultBorderRadius = BorderRadius.circular(20);
 
   static ScrollbarThemeData scrollbarTheme =
-      const ScrollbarThemeData().copyWith(
-    thumbColor: WidgetStateProperty.all(defaultYellowColor),
-    trackColor: WidgetStateProperty.all(Color(0xFFBBBBBB)),
-    trackVisibility: WidgetStatePropertyAll(true),
-    thumbVisibility: WidgetStateProperty.all(false),
+      ScrollbarThemeData(
+    thumbColor: MaterialStateProperty.all(defaultYellowColor),
+    trackColor: MaterialStateProperty.all(Color(0xFFBBBBBB)),
+    trackVisibility: MaterialStateProperty.all(true),
+    thumbVisibility: MaterialStateProperty.all(false),
     interactive: true,
-    thickness: WidgetStateProperty.all(10.0),
+    thickness: MaterialStateProperty.all(10.0),
     radius: Radius.circular(20),
   );
 }

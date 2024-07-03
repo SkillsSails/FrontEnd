@@ -1,4 +1,4 @@
-name: safypower_app
+name: skillssails
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -7,22 +7,48 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.4.3 <4.0.0'
+  sdk: '>=3.3.4'
 
 dependencies:
   flutter:
     sdk: flutter
-  get: ^4.6.6
-  dio: ^5.4.3+1
-  google_sign_in: ^6.2.1
-  google_maps_flutter: ^2.7.0
-  universal_io: ^2.0.4
-  flutter_map: ^7.0.1
-  url_launcher: ^6.3.0
-  cupertino_icons: ^1.0.6
-  qr_flutter: ^4.0.0
+  http: ^0.13.3
+  device_preview: ^1.1.0
+  flutter_secure_storage: ^4.2.1
+  google_fonts: ^4.0.4
+  image_picker: ^0.8.4+2
+  get: ^4.6.1 # or the latest version
+  google_sign_in: ^5.0.3
+  mongo_dart: ^0.10.0
+  provider: 6.1.2
+  url_launcher: ^6.0.20 # or the latest version
+  file_picker: ^8.0.5
+  pdf: ^3.10.8
   qr_code_scanner: ^1.0.1
-
+  qr_flutter: ^4.0.0
+  dotenv: ^4.0.0
+  path: ^1.8.0
+  mailer: ^6.1.0
+  twilio_flutter: ^0.0.9
+  file_selector: ^1.0.3
+  intl: ^0.18.1
+  fl_chart: ^0.35.0
+  percent_indicator: ^3.0.1
+  syncfusion_flutter_calendar: ^24.1.44
+  scoped_model: ^2.0.0
+  lottie: ^3.0.0
+  uuid: ^4.4.0
+  chat_bubbles: ^1.0.1
+  speech_to_text: ^6.5.1
+  google_generative_ai: 0.0.1-dev
+  flutter_gemini: ^2.0.3
+  permission_handler: ^10.2.0
+  flutter_sound: ^9.1.10+1
+  path_provider: ^2.0.9
+  cupertino_icons: ^1.0.6
+  shared_preferences: ^2.2.2
+  socket_io_client: ^2.0.3+1
+  flutter_local_notifications: ^12.0.4
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -38,6 +64,12 @@ flutter:
     - assets/images/email_icon.png
     - assets/images/logo2.png
     - assets/images/logo3.png
+    - assets/icons/
+    - assets/images/
+    - assets/sounds/
+    - assets/Animations/
+    - assets/
+    - assets/imageRec/
 
   fonts:
     - family: Rubik

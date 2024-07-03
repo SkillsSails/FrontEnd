@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:safypower_app/main.dart';
-import 'package:safypower_app/pages/login_page.dart';
-import 'package:safypower_app/pages/signup_page.dart';
+import 'package:skillssails/pages/login_page.dart';
+
+double figmaY = -31;  // Replace with the actual Y coordinate of the eclipse center in Figma
+double figmaX = 200;  // Replace with the actual X coordinate of the eclipse center in Figma
+
+// Figma Coordinates
+double figmaY2 = -131;  // Replace with the actual Y coordinate of the eclipse center in Figma
+double figmaX2 = 0;  //test
+double figmaY3 = 612;  // Replace with the actual Y coordinate of the eclipse center in Figma
+double figmaX3 = 267;  //test
+double figmaY4 = 512;  // Replace with the actual Y coordinate of the eclipse center in Figma
+double figmaX4 = 339;  //test
+
+// Eclipse Dimensions
+double eclipseHeight = 200;  // Replace with the actual height of your eclipse asset
+double eclipseWidth = 200;  // Replace with the actual width of your eclipse asset
 
 class LaunchScreen extends StatefulWidget {
   static const String routeName = '/splash'; 
@@ -31,9 +44,28 @@ class _LaunchScreenState extends State<LaunchScreen> {
 
     return Scaffold(
       body: Stack(
-        children: <Widget>[
+        children: [
+          // Background shapes
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Image.asset(
+              'assets/images/top_circle.png',
+              width: eclipseWidth,
+              height: eclipseHeight,
+            ),
+          ),
+          Positioned(
+            bottom: screenWidth * 0.5,
+            right: screenWidth * 0.3,
+            child: Image.asset(
+              'assets/images/bottom_circle.png',
+              width: eclipseWidth,
+              height: eclipseHeight,
+            ),
+          ),
           Container(
-            color: Color.fromARGB(255, 188, 219, 223),
+            color: const Color.fromARGB(255, 188, 219, 223),
           ),
           Center(
             child: Column(
