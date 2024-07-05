@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:skillssails/pages/home_page.dart';
 import 'package:skillssails/pages/signup_page.dart';
+import 'profile_page.dart';  // Replace with the actual path to your ProfilePage file
 
 class LoginPage extends StatefulWidget {
   @override
@@ -121,7 +123,10 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           onPressed: () {
-                            // Add your onPressed logic here
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => HomePage()),
+                            );
                           },
                         ),
                         const SizedBox(height: 20),
