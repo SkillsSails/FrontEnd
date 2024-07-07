@@ -1,8 +1,8 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 import 'package:skillssails/pages/login_page.dart';
+import 'package:skillssails/providers/user_provider.dart';
 
 class SignupPage extends StatefulWidget {
   @override
@@ -10,11 +10,11 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-
+  String? cvFilePath;
   bool _obscureText = true;
+  bool _isLoading = false;
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -22,21 +22,33 @@ class _SignupPageState extends State<SignupPage> {
     });
   }
 
-  Future<void> _sendVerificationCode() async {
-    Get.toNamed('/verify');
-  }
+  Future<void> _registerUser() async {
+    final String username = usernameController.text;
+    final String password = passwordController.text;
 
-  Future<void> _handleSignIn() async {
+    print('Attempting to register user with username: $username and password: $password');
+
+    if (username.isEmpty || password.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser != null) {
-        print('Google User: ${googleUser.displayName}, ${googleUser.email}');
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.createUser(username, password);
+      if (userProvider.userId.isNotEmpty) {
         Get.toNamed('/home');
-      } else {
-        print('Google sign-in cancelled.');
       }
-    } catch (error) {
-      print('Google sign-in error: $error');
+    } catch (e) {
+      // Handle error silently or log it for debugging
+      print('Failed to register user: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -45,7 +57,6 @@ class _SignupPageState extends State<SignupPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background decoration with images instead of circles
           Positioned(
             top: -50,
             left: -50,
@@ -79,7 +90,7 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   const SizedBox(height: 20),
                   Image.asset(
-                    'assets/images/registerimage.png', // Use the provided image
+                    'assets/images/registerimage.png',
                     width: 200,
                     height: 200,
                   ),
@@ -89,6 +100,7 @@ class _SignupPageState extends State<SignupPage> {
                     child: Column(
                       children: [
                         TextFormField(
+                          controller: usernameController,
                           decoration: InputDecoration(
                             hintText: 'User Name',
                             filled: true,
@@ -121,14 +133,11 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         const SizedBox(height: 20),
                         GestureDetector(
-                          onTap: () {
-                            // Handle CV upload
-                          },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'CV.pdf',
+                                cvFilePath != null ? 'CV selected' : 'Upload CV.pdf',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.black,
@@ -147,15 +156,17 @@ class _SignupPageState extends State<SignupPage> {
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                           ),
-                          child: const Text(
+                          child: _isLoading
+                              ? CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6F61)),
+                          )
+                              : const Text(
                             'Register',
                             style: TextStyle(
-                              color: Color(0xFFFF6F61), // Setting the text color
+                              color: Color(0xFFFF6F61),
                             ),
                           ),
-                          onPressed: () {
-                            // Add your onPressed logic here
-                          },
+                          onPressed: _isLoading ? null : _registerUser,
                         ),
                         const SizedBox(height: 20),
                         TextButton(
@@ -193,10 +204,4 @@ class _SignupPageState extends State<SignupPage> {
       ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: SignupPage(),
-  ));
 }

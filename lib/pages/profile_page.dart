@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'appbar.dart';  // Replace with the actual path to your custom navigation bar file
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skillssails/providers/user_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -16,9 +18,46 @@ class _ProfilePageState extends State<ProfilePage> {
     // Add navigation logic if necessary
   }
 
+  Future<void> _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Logout'),
+          content: Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _logout();
+              },
+              child: Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Fetch the username from the provider
+    final username = Provider.of<UserProvider>(context).username;
+
     return Scaffold(
+  
       body: Stack(
         children: [
           // Background decoration with images
@@ -52,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'Welcome Omar Djebbi',
+                    'Welcome $username',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -80,7 +119,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           SizedBox(height: 10),
                           Text(
-                            'Name: John Doe',
+                            'Name: $username',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 5),
@@ -151,13 +190,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-    
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: ProfilePage(),
-  ));
 }

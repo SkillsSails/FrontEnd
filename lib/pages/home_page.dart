@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skillssails/pages/profile_page.dart';
 import 'appbar.dart';
+import 'top_appbar.dart';
 
 
 
@@ -9,6 +11,7 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
@@ -16,6 +19,38 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _currentIndex = index;
     });
+  }
+  
+    Future<void> _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+    void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Logout'),
+          content: Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _logout();
+              },
+              child: Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   final List<Widget> _children = [
@@ -27,7 +62,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+     return Scaffold(
+      appBar: TopAppBar(
+        title: 'Profile',
+        onLogout: _showLogoutConfirmationDialog,
+      ),
       body: Stack(
         children: [
           Positioned(

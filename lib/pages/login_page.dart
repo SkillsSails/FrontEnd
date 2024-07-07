@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:skillssails/pages/home_page.dart';
 import 'package:skillssails/pages/signup_page.dart';
-import 'profile_page.dart';  // Replace with the actual path to your ProfilePage file
+import 'package:skillssails/providers/user_provider.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -9,7 +10,18 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
   bool _obscureText = true;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    usernameController.text = userProvider.username;
+    passwordController.text = userProvider.password;
+  }
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -17,14 +29,46 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  Future<void> _loginUser() async {
+    final String username = usernameController.text;
+    final String password = passwordController.text;
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.authenticateUser(username, password);
+      if (userProvider.userId.isNotEmpty) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to login: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       body: Stack(
         children: [
-          // Background decoration with images instead of circles
           Positioned(
             top: -50,
             left: -50,
@@ -58,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 20),
                   Image.asset(
-                    'assets/images/loginimage.png', // Update the path to your image
+                    'assets/images/loginimage.png',
                     width: 200,
                     height: 200,
                   ),
@@ -68,6 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       children: [
                         TextFormField(
+                          controller: usernameController,
                           decoration: InputDecoration(
                             hintText: 'User Name',
                             filled: true,
@@ -80,6 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
+                          controller: passwordController,
                           obscureText: _obscureText,
                           decoration: InputDecoration(
                             hintText: 'Password',
@@ -116,18 +162,17 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                           ),
-                          child: const Text(
-                            'Login',
-                            style: TextStyle(
-                              color: Color(0xFFFF6F61), // Setting the text color
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => HomePage()),
-                            );
-                          },
+                          child: _isLoading
+                              ? CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6F61)),
+                                )
+                              : const Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    color: Color(0xFFFF6F61), // Setting the text color
+                                  ),
+                                ),
+                          onPressed: _isLoading ? null : _loginUser,
                         ),
                         const SizedBox(height: 20),
                         TextButton(
@@ -165,10 +210,4 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: LoginPage(),
-  ));
 }

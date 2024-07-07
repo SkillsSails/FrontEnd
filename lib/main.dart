@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:skillssails/pages/launch_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:skillssails/pages/signup_page.dart';
+import 'package:skillssails/providers/user_provider.dart';
 import 'app_pages.dart';
-import 'pages/signup_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -11,11 +12,17 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/splash',
-      getPages: AppPages.pages,
-      home: LaunchScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<UserProvider>(
+          create: (context) => UserProvider(),
+        ),
+        // Add other providers here
+      ],
+      child: GetMaterialApp(
+        initialRoute: '/signup',
+        getPages: AppPages.pages,
+      ),
     );
   }
 }

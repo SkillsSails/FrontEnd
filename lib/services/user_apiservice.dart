@@ -1,79 +1,68 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:skillssails/model/user_model.dart';
 
 class UserApiService {
-  static const String baseUrl = "http://192.168.1.11:3000";
+  static const String baseUrl = "http://10.0.2.2:5000/auth";
 
-  static Future<User> createUser(String username, String password, String? cvFilePath) async {
-    try {
-      final Uri requestUri = Uri.parse('$baseUrl/user/registerclient');
-      var request = http.MultipartRequest('POST', requestUri);
-      request.fields['username'] = username;
-      request.fields['password'] = password;
+  static Future<User> createUser(String username, String password) async {
+    if (username.isEmpty || password.isEmpty) {
+      throw Exception('Username or password is empty');
+    }
 
-      if (cvFilePath != null) {
-        var cvFile = File(cvFilePath);
-        var cvStream = http.ByteStream(cvFile.openRead());
-        var length = await cvFile.length();
-        var cvFilePart = http.MultipartFile(
-          'cv',
-          cvStream,
-          length,
-          filename: cvFile.path.split('/').last,
-        );
-        request.files.add(cvFilePart);
-      }
+    final response = await http.post(
+      Uri.parse("$baseUrl/signup"), // Change to match Flask route
+      body: jsonEncode({"username": username, "password": password}),
+      headers: {"Content-Type": "application/json"},
+    );
 
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        return User.fromJson(responseData);
-      } else {
-        throw Exception('Failed to create user');
-      }
-    } catch (e) {
-      throw Exception('Failed to create user');
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      return User.fromJson(data); // Ensure this matches your backend response structure
+    } else {
+      final responseJson = jsonDecode(response.body);
+      throw Exception('Failed to register user: ${responseJson['error']}');
     }
   }
 
   static Future<User> authenticateUser(String username, String password) async {
-    final Uri requestUri = Uri.parse('$baseUrl/user/loginclient');
-    final Map<String, String> requestBody = {
-      'username': username,
-      'password': password,
-    };
-
-    final http.Response response = await http.post(
-      requestUri,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(requestBody),
+    final response = await http.post(
+      Uri.parse("$baseUrl/signin"), // Change to match Flask route
+      body: jsonEncode({"username": username, "password": password}),
+      headers: {"Content-Type": "application/json"},
     );
 
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      return User.fromJson(responseData['user']);
+      final data = jsonDecode(response.body);
+      return User.fromJson(data); // Ensure this matches your backend response structure
     } else {
-      throw Exception('Failed to authenticate user');
+      final responseJson = jsonDecode(response.body);
+      throw Exception('Failed to authenticate user: ${responseJson['error']}');
     }
   }
 
   static Future<User> fetchUserProfileById(String userId) async {
-    final Uri requestUri = Uri.parse('$baseUrl/user/profile/$userId');
+    if (userId.isEmpty) {
+      throw Exception('User ID is empty');
+    }
 
-    final http.Response response = await http.get(
-      requestUri,
-      headers: {'Content-Type': 'application/json'},
-    );
+    final response = await http.get(Uri.parse("$baseUrl/user/$userId"));
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      return User.fromJson(responseData);
+      final data = jsonDecode(response.body);
+      return User.fromJson(data); // Ensure this matches your backend response structure
     } else {
-      throw Exception('Failed to fetch user profile');
+      final responseJson = jsonDecode(response.body);
+      throw Exception('Failed to fetch user profile: ${responseJson['error']}');
     }
   }
 }

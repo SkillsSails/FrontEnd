@@ -1,28 +1,17 @@
 class User {
-  final String? username;
   final String? id;
+  final String username;
   final String? password;
-  final String? cvFile; // Path to the CV file
 
-  const User({
-    this.username,
-    this.id,
-    this.password,
-    this.cvFile,
-  });
+  User({required this.id, required this.username, this.password});
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      username: json['username'],
-      id: json['id'],
-      password: json['password'],
-      cvFile: json['cvFile'],
+      id: json['_id'] as String?,
+      username: json['username'] as String,
+      password: json['password'] as String?,
     );
   }
-
-  const User.empty()
-      : username = null,
-        id = null,
-        password = null,
-        cvFile = null;
 }
+
+
