@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skillssails/providers/user_provider.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -9,41 +8,93 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int _currentIndex = 1;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-    // Add navigation logic if necessary
-  }
+  // Example: Form fields controllers
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _githubController = TextEditingController();
+  final TextEditingController _linkedinController = TextEditingController();
 
-  Future<void> _logout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    Navigator.pushReplacementNamed(context, '/login');
-  }
+  void _showProfileUpdateDialog(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final user = userProvider.user;
 
-  void _showLogoutConfirmationDialog() {
+    // Pre-fill the form fields with current user data
+    _phoneController.text = user?.phoneNumber ?? '';
+    _githubController.text = user?.github ?? '';
+    _linkedinController.text = user?.linkedin ?? '';
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Logout'),
-          content: Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('No'),
+          title: Text('Edit Profile'),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(labelText: 'Phone'),
+                ),
+                TextFormField(
+                  controller: _githubController,
+                  decoration: InputDecoration(labelText: 'GitHub'),
+                ),
+                TextFormField(
+                  controller: _linkedinController,
+                  decoration: InputDecoration(labelText: 'LinkedIn'),
+                ),
+              ],
             ),
+          ),
+          actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _logout();
               },
-              child: Text('Yes'),
+              child: Text('Cancel'  ,
+              style: TextStyle(
+                        fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFF6F61),
+                            ),),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // Construct profile data from form
+                  final profileData = {
+                    'phone_number': _phoneController.text.trim(),
+                    'github': _githubController.text.trim(),
+                    'linkedin': _linkedinController.text.trim(),
+                  };
+
+                  userProvider.updateUserProfile(profileData).then((_) {
+                    userProvider.fetchProfile().then((_) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Profile updated successfully')),
+                      );
+                      Navigator.of(context).pop(); // Close dialog on success
+                    }).catchError((error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to fetch profile: $error')),
+                      );
+                    });
+                  }).catchError((error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to update profile: $error')),
+                    );
+                  });
+                }
+              },
+              child: Text('Update',
+                   style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFF6F61),
+                            ),),
             ),
           ],
         );
@@ -52,12 +103,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Fetch user profile when the profile page is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<UserProvider>(context, listen: false).fetchProfile();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Fetch the username from the provider
-    final username = Provider.of<UserProvider>(context).username;
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
 
     return Scaffold(
-  
       body: Stack(
         children: [
           // Background decoration with images
@@ -84,14 +143,14 @@ class _ProfilePageState extends State<ProfilePage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(height: 90), // Adjusted the height to balance the layout after removing the time text
+                  SizedBox(height: 90),
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: AssetImage('assets/images/profile_picture.png'),
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'Welcome $username',
+                    'Welcome ${user?.username ?? ''}',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -119,22 +178,22 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           SizedBox(height: 10),
                           Text(
-                            'Name: $username',
+                            'Name: ${user?.username ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 5),
                           Text(
-                            'Phone: 123-456-7890',
+                            'Phone: ${user?.phoneNumber ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 5),
                           Text(
-                            'Github: https://github.com/johndoe',
+                            'Github: ${user?.github ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 5),
                           Text(
-                            'LinkedIn: https://www.linkedin.com/in/johndoe',
+                            'LinkedIn: ${user?.linkedin ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 20),
@@ -148,12 +207,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           SizedBox(height: 10),
                           Text(
-                            'Technical Skills:',
+                            'Technical Skills: ${user?.technicalSkills?.join(', ') ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 5),
                           Text(
-                            'Professional Skills:',
+                            'Professional Skills: ${user?.professionalSkills?.join(', ') ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 20),
@@ -167,22 +226,36 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           SizedBox(height: 10),
                           Text(
-                            'Organization: Udemy',
+                            'Organization: ${user?.certification?['organization'] ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 5),
                           Text(
-                            'Name: Certified JavaScript Developer',
+                            'Name: ${user?.certification?['name'] ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                           SizedBox(height: 5),
                           Text(
-                            'Year: 2019',
+                            'Year: ${user?.certification?['year'] ?? ''}',
                             style: TextStyle(fontSize: 16),
                           ),
                         ],
                       ),
                     ),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      _showProfileUpdateDialog(context);
+                      
+                    },
+                    child: Text('Edit Profile',
+                     style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFF6F61),
+                            ),
+                    )
                   ),
                 ],
               ),

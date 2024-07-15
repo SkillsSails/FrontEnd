@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:provider/provider.dart';
 import 'package:skillssails/pages/home_page.dart';
 import 'package:skillssails/pages/signup_page.dart';
@@ -15,13 +17,15 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscureText = true;
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
+  
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     usernameController.text = userProvider.username;
     passwordController.text = userProvider.password;
   }
+  
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -47,6 +51,8 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       await userProvider.authenticateUser(username, password);
+      await userProvider.saveUserDetailsLocally(); // Save userId locally
+
       if (userProvider.userId.isNotEmpty) {
         Navigator.pushReplacement(
           context,
@@ -143,10 +149,10 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
                         TextButton(
                           onPressed: () {
-                            // Navigate to forget password page
+                            Get.toNamed('/forgotpassword');
                           },
                           child: const Text(
                             'Forget Password',

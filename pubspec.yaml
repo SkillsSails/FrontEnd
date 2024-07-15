@@ -23,6 +23,7 @@ dependencies:
   provider: 6.1.2
   url_launcher: ^6.0.20 # or the latest version
   file_picker: ^8.0.5
+  dio: ^5.4.3
   pdf: ^3.10.8
   qr_code_scanner: ^1.0.1
   qr_flutter: ^4.0.0
@@ -30,6 +31,8 @@ dependencies:
   path: ^1.8.0
   mailer: ^6.1.0
   twilio_flutter: ^0.0.9
+  googleapis: ^9.0.0
+  googleapis_auth: ^1.0.0
   file_selector: ^1.0.3
   intl: ^0.18.1
   fl_chart: ^0.35.0

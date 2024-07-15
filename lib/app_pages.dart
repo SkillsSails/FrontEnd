@@ -1,8 +1,11 @@
 import 'package:get/get.dart';
 import 'package:skillssails/pages/centreaide_page.dart';
+import 'package:skillssails/pages/change_password_page.dart';
 import 'package:skillssails/pages/conditions-generale-Page.dart';
+import 'package:skillssails/pages/forgotpassword_page.dart';
 import 'package:skillssails/pages/launch_screen.dart';
 import 'package:skillssails/pages/login_page.dart';
+import 'package:skillssails/pages/otp_verification_page.dart';
 import 'package:skillssails/pages/signup_page.dart';
 import 'package:skillssails/pages/verify_code_page.dart';
 import 'package:skillssails/pages/faq_page.dart';
@@ -17,6 +20,9 @@ class AppPages {
     GetPage(name: '/login', page: () => LoginPage()),
     GetPage(name: '/signup', page: () => SignupPage()),
     GetPage(name: '/verify', page: () => VerifyCodePage()),
+    GetPage(name: '/otp', page: () => OTPVerificationPage()),
+    GetPage(name: '/changePassword', page: () => ChangePasswordPage()),
+    GetPage(name: '/forgotpassword', page: () => ForgotPasswordPage()), // Add this line
     GetPage(name: '/faq', page: () => FAQPage()),
     GetPage(name: '/contact', page: () => ContactPage()),
     GetPage(name: '/home', page: () => HomePage()), // Add this line

@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' as GetX;
 import 'package:provider/provider.dart';
 import 'package:skillssails/pages/login_page.dart';
 import 'package:skillssails/providers/user_provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:dio/dio.dart' as Dio;
 
 class SignupPage extends StatefulWidget {
   @override
@@ -22,13 +25,27 @@ class _SignupPageState extends State<SignupPage> {
     });
   }
 
+Future<void> _pickFile() async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['pdf'],
+  );
+
+  if (result != null) {
+    setState(() {
+      cvFilePath = result.files.single.path;
+    });
+  }
+}
+
+
   Future<void> _registerUser() async {
     final String username = usernameController.text;
     final String password = passwordController.text;
 
     print('Attempting to register user with username: $username and password: $password');
 
-    if (username.isEmpty || password.isEmpty) {
+    if (username.isEmpty || password.isEmpty || cvFilePath == null) {
       return;
     }
 
@@ -38,9 +55,12 @@ class _SignupPageState extends State<SignupPage> {
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      await userProvider.createUser(username, password);
+
+      // Register the user with the selected CV file path
+      await userProvider.createUser(username, password, cvFilePath!);
+
       if (userProvider.userId.isNotEmpty) {
-        Get.toNamed('/home');
+        GetX.Get.toNamed('/home');
       }
     } catch (e) {
       // Handle error silently or log it for debugging
@@ -133,6 +153,7 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         const SizedBox(height: 20),
                         GestureDetector(
+                          onTap: _pickFile,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -156,17 +177,17 @@ class _SignupPageState extends State<SignupPage> {
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                           ),
+                          onPressed: _isLoading ? null : _registerUser,
                           child: _isLoading
                               ? CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6F61)),
-                          )
-                              : const Text(
-                            'Register',
-                            style: TextStyle(
-                              color: Color(0xFFFF6F61),
-                            ),
-                          ),
-                          onPressed: _isLoading ? null : _registerUser,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6F61)),
+                                )
+                              : Text(
+                                  'Register',
+                                  style: TextStyle(
+                                    color: Color(0xFFFF6F61),
+                                  ),
+                                ),
                         ),
                         const SizedBox(height: 20),
                         TextButton(
@@ -176,7 +197,7 @@ class _SignupPageState extends State<SignupPage> {
                               MaterialPageRoute(builder: (context) => LoginPage()),
                             );
                           },
-                          child: const Text.rich(
+                          child: Text.rich(
                             TextSpan(
                               text: 'Already have an account? ',
                               style: TextStyle(color: Color(0xFF6F6E6E)),
