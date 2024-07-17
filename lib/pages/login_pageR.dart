@@ -1,23 +1,29 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart' as GetX;
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-import 'package:skillssails/pages/login_page.dart';
+import 'package:skillssails/pages/home_page.dart';
+import 'package:skillssails/pages/signup_page.dart';
+import 'package:skillssails/pages/signup_pageR.dart';
 import 'package:skillssails/providers/user_provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:dio/dio.dart' as Dio;
 
-class SignupPage extends StatefulWidget {
+class RecruiterLoginPage extends StatefulWidget {
   @override
-  _SignupPageState createState() => _SignupPageState();
+  _RecruiterLoginPageState createState() => _RecruiterLoginPageState();
 }
 
-class _SignupPageState extends State<SignupPage> {
+class _RecruiterLoginPageState extends State<RecruiterLoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  String? cvFilePath;
   bool _obscureText = true;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    usernameController.text = userProvider.username;
+    passwordController.text = userProvider.password;
+  }
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -25,27 +31,14 @@ class _SignupPageState extends State<SignupPage> {
     });
   }
 
-Future<void> _pickFile() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['pdf'],
-  );
-
-  if (result != null) {
-    setState(() {
-      cvFilePath = result.files.single.path;
-    });
-  }
-}
-
-
-  Future<void> _registerUser() async {
+  Future<void> _loginUser() async {
     final String username = usernameController.text;
     final String password = passwordController.text;
 
-    print('Attempting to register user with username: $username and password: $password');
-
-    if (username.isEmpty || password.isEmpty || cvFilePath == null) {
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill in all fields')),
+      );
       return;
     }
 
@@ -55,16 +48,19 @@ Future<void> _pickFile() async {
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-      // Register the user with the selected CV file path
-      await userProvider.createUser(username, password, cvFilePath!);
+      await userProvider.authenticateUserR(username, password);
+      await userProvider.saveUserDetailsLocally(); // Save userId locally
 
       if (userProvider.userId.isNotEmpty) {
-        GetX.Get.toNamed('/home');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
       }
     } catch (e) {
-      // Handle error silently or log it for debugging
-      print('Failed to register user: ${e.toString()}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to login: ${e.toString()}')),
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -101,7 +97,7 @@ Future<void> _pickFile() async {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    'Welcome Onboard!',
+                    'Welcome Back!',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -110,7 +106,7 @@ Future<void> _pickFile() async {
                   ),
                   const SizedBox(height: 20),
                   Image.asset(
-                    'assets/images/registerimage.png',
+                    'assets/images/loginimage.png',
                     width: 200,
                     height: 200,
                   ),
@@ -152,20 +148,13 @@ Future<void> _pickFile() async {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        GestureDetector(
-                          onTap: _pickFile,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                cvFilePath != null ? 'CV selected' : 'Upload CV.pdf',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Icon(Icons.upload_file),
-                            ],
+                        TextButton(
+                          onPressed: () {
+                            Get.toNamed('/forgotpassword');
+                          },
+                          child: const Text(
+                            'Forget Password',
+                            style: TextStyle(color: Color(0xFFFF6F61)),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -177,33 +166,33 @@ Future<void> _pickFile() async {
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                           ),
-                          onPressed: _isLoading ? null : _registerUser,
                           child: _isLoading
                               ? CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6F61)),
                                 )
-                              : Text(
-                                  'Register',
+                              : const Text(
+                                  'Login',
                                   style: TextStyle(
-                                    color: Color(0xFFFF6F61),
+                                    color: Color(0xFFFF6F61), // Setting the text color
                                   ),
                                 ),
+                          onPressed: _isLoading ? null : _loginUser,
                         ),
                         const SizedBox(height: 20),
                         TextButton(
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => LoginPage()),
+                              MaterialPageRoute(builder: (context) => RecruiterSignupPage()),
                             );
                           },
-                          child: Text.rich(
+                          child: const Text.rich(
                             TextSpan(
-                              text: 'Already have an account? ',
+                              text: "Don't have an account? ",
                               style: TextStyle(color: Color(0xFF6F6E6E)),
                               children: [
                                 TextSpan(
-                                  text: 'Sign In',
+                                  text: 'Sign Up',
                                   style: TextStyle(
                                     color: Color(0xFFFF6F61),
                                     fontWeight: FontWeight.bold,

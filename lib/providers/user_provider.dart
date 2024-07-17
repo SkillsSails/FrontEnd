@@ -62,8 +62,34 @@ class UserProvider with ChangeNotifier {
   }
 
 
+ Future<void> createUserR(String username, String password) async {
+    try {
+      await UserApiService.createUserR(username, password);
 
+      _username = username;
+      _password = password;
 
+      await saveUserDetailsLocally();
+      notifyListeners();
+    } catch (e) {
+      print('Error in createUserR: $e');
+      throw Exception('Failed to register recruiter: ${e.toString()}');
+    }
+  }
+Future<User> authenticateUserR(String username, String password) async {
+    try {
+      final User user = await UserApiService.authenticateUserR(username, password);
+      _userId = user.id ?? '';
+      _username = username;
+      _password = password;
+      await saveUserDetailsLocally();
+      notifyListeners();
+      return user;
+    } catch (e) {
+      print('Error: $e');
+      throw e; // Pass the error back to the UI
+    }
+  }
 
 
   Future<void> saveUserDetailsLocally() async {
@@ -190,4 +216,3 @@ Future<void> fetchProfile() async {
 }
 
 }
-

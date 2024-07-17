@@ -63,6 +63,32 @@ static Future<String?> getContactInfo() async {
     }
   }
 
+ static Future<void> createUserR(String username, String password) async {
+    try {
+      final dio = Dio();
+      dio.options.baseUrl = baseUrl;
+      dio.options.connectTimeout = Duration(seconds: 5);
+      dio.options.receiveTimeout = Duration(seconds: 3);
+
+      FormData formData = FormData.fromMap({
+        'username': username,
+        'password': password,
+      });
+
+      final response = await dio.post('/signupR', data: formData);
+
+      if (response.statusCode == 201) {
+        final data = response.data;
+        print('User created successfully: $data');
+        // Handle successful creation as needed
+      } else {
+        throw Exception('Failed to register user');
+      }
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Failed to register user: ${e.toString()}');
+    }
+  }
 static Future<User> authenticateUser(String username, String password) async {
     try {
       final response = await http.post(
@@ -121,6 +147,46 @@ static Future<User> authenticateUser(String username, String password) async {
     }
   }
 
+
+
+static Future<User> authenticateUserR(String username, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/signinR"),
+        body: jsonEncode({"username": username, "password": password}),
+        headers: {"Content-Type": "application/json"},
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        final user = User(
+          id: data['_id'] as String?,
+          username: data['username'] as String,
+          password: data['password'] as String? ?? '',
+          email: '',
+          phoneNumber: '',
+          github: '',
+          linkedin: '',
+          technicalSkills: [],
+          professionalSkills: [],
+          certification: {},
+          role: data['role'] as String?,
+        );
+
+        return user;
+      } else {
+        final responseJson = jsonDecode(response.body);
+        throw Exception('Failed to authenticate user: ${responseJson['error']}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Failed to authenticate user: ${e.toString()}');
+    }
+  }
 
 static Future<void> saveUserId(String userId) async {
   final prefs = await SharedPreferences.getInstance();

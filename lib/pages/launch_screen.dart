@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skillssails/pages/login_page.dart';
+import 'package:skillssails/pages/role_selection_page.dart';
 
 double figmaY = -31;  // Replace with the actual Y coordinate of the eclipse center in Figma
 double figmaX = 200;  // Replace with the actual X coordinate of the eclipse center in Figma
@@ -33,7 +34,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
     Future.delayed(const Duration(seconds: 5), () {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => RoleSelectionPage()),
       );
     });
   }

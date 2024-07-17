@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 class User {
   final String? id;
   final String username;
-  final String password; // Non-nullable password
+  final String password;
   final String email;
   final String phoneNumber;
   final String github;
@@ -9,6 +12,7 @@ class User {
   final List<String>? technicalSkills;
   final List<String>? professionalSkills;
   final Map<String, dynamic>? certification;
+  final String? role;
 
   User({
     required this.id,
@@ -21,13 +25,14 @@ class User {
     this.technicalSkills,
     this.professionalSkills,
     this.certification,
+    this.role,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['_id'] as String?,
       username: json['username'] as String,
-      password: json['password'] as String? ?? '', // Use empty string as default if null
+      password: json['password'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phoneNumber: json['phone_number'] as String? ?? '',
       github: json['github'] as String? ?? '',
@@ -35,6 +40,7 @@ class User {
       technicalSkills: List<String>.from(json['technical_skills'] ?? []),
       professionalSkills: List<String>.from(json['professional_skills'] ?? []),
       certification: json['certification'] as Map<String, dynamic>?,
+      role: json['role'] as String?,
     );
   }
 
@@ -50,6 +56,7 @@ class User {
       'technical_skills': technicalSkills,
       'professional_skills': professionalSkills,
       'certification': certification,
+      'role': role,
     };
   }
 }

@@ -67,12 +67,8 @@ flutter:
     - assets/images/email_icon.png
     - assets/images/logo2.png
     - assets/images/logo3.png
-    - assets/icons/
     - assets/images/
-    - assets/sounds/
-    - assets/Animations/
     - assets/
-    - assets/imageRec/
 
   fonts:
     - family: Rubik

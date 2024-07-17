@@ -5,8 +5,10 @@ import 'package:skillssails/pages/conditions-generale-Page.dart';
 import 'package:skillssails/pages/forgotpassword_page.dart';
 import 'package:skillssails/pages/launch_screen.dart';
 import 'package:skillssails/pages/login_page.dart';
+import 'package:skillssails/pages/login_pageR.dart';
 import 'package:skillssails/pages/otp_verification_page.dart';
 import 'package:skillssails/pages/signup_page.dart';
+import 'package:skillssails/pages/signup_pageR.dart';
 import 'package:skillssails/pages/verify_code_page.dart';
 import 'package:skillssails/pages/faq_page.dart';
 import 'package:skillssails/pages/contact_page.dart';
@@ -26,6 +28,10 @@ class AppPages {
     GetPage(name: '/faq', page: () => FAQPage()),
     GetPage(name: '/contact', page: () => ContactPage()),
     GetPage(name: '/home', page: () => HomePage()), // Add this line
+    GetPage(name: '/signupR', page: () => RecruiterSignupPage()), // Add this line
+    GetPage(name: '/loginR', page: () => RecruiterLoginPage()), // Add this line
+
+
 
   ];
 }

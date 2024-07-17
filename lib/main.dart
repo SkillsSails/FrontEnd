@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         // Add other providers here
       ],
       child: GetMaterialApp(
-        initialRoute: '/signup',
+        initialRoute: '/splash',
         getPages: AppPages.pages,
       ),
     );

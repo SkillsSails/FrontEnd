@@ -1,21 +1,17 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' as GetX;
 import 'package:provider/provider.dart';
 import 'package:skillssails/pages/login_page.dart';
 import 'package:skillssails/providers/user_provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:dio/dio.dart' as Dio;
 
-class SignupPage extends StatefulWidget {
+class RecruiterSignupPage extends StatefulWidget {
   @override
-  _SignupPageState createState() => _SignupPageState();
+  _RecruiterSignupPageState createState() => _RecruiterSignupPageState();
 }
 
-class _SignupPageState extends State<SignupPage> {
+class _RecruiterSignupPageState extends State<RecruiterSignupPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  String? cvFilePath;
   bool _obscureText = true;
   bool _isLoading = false;
 
@@ -25,27 +21,13 @@ class _SignupPageState extends State<SignupPage> {
     });
   }
 
-Future<void> _pickFile() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['pdf'],
-  );
-
-  if (result != null) {
-    setState(() {
-      cvFilePath = result.files.single.path;
-    });
-  }
-}
-
-
-  Future<void> _registerUser() async {
+  Future<void> _registerRecruiter() async {
     final String username = usernameController.text;
     final String password = passwordController.text;
 
-    print('Attempting to register user with username: $username and password: $password');
+    print('Attempting to register recruiter with username: $username and password: $password');
 
-    if (username.isEmpty || password.isEmpty || cvFilePath == null) {
+    if (username.isEmpty || password.isEmpty) {
       return;
     }
 
@@ -56,15 +38,15 @@ Future<void> _pickFile() async {
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-      // Register the user with the selected CV file path
-      await userProvider.createUser(username, password, cvFilePath!);
+      // Register the recruiter
+      await userProvider.createUserR(username, password);
 
       if (userProvider.userId.isNotEmpty) {
         GetX.Get.toNamed('/home');
       }
     } catch (e) {
       // Handle error silently or log it for debugging
-      print('Failed to register user: ${e.toString()}');
+      print('Failed to register recruiter: ${e.toString()}');
     } finally {
       setState(() {
         _isLoading = false;
@@ -152,23 +134,6 @@ Future<void> _pickFile() async {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        GestureDetector(
-                          onTap: _pickFile,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                cvFilePath != null ? 'CV selected' : 'Upload CV.pdf',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Icon(Icons.upload_file),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFFBCDBDF),
@@ -177,7 +142,7 @@ Future<void> _pickFile() async {
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                           ),
-                          onPressed: _isLoading ? null : _registerUser,
+                          onPressed: _isLoading ? null : _registerRecruiter,
                           child: _isLoading
                               ? CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6F61)),
