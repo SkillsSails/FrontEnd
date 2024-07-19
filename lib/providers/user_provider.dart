@@ -13,6 +13,10 @@ class UserProvider with ChangeNotifier {
   String _userId = '';
   String _username = '';
   String _password = '';
+  List<Job> _recommendedJobs = [];
+  bool _isLoading = false;
+  String _errorMessage = '';
+
 
     User? _user;
   User? get user => _user;
@@ -20,6 +24,9 @@ class UserProvider with ChangeNotifier {
   String get userId => _userId;
   String get username => _username;
   String get password => _password;
+    bool get isLoading => _isLoading;
+  String get errorMessage => _errorMessage;
+
   String _email = '';
   String _phone = '';
   String _github = '';
@@ -29,7 +36,7 @@ class UserProvider with ChangeNotifier {
   String _certificationOrganization = '';
   String _certificationName = '';
   String _certificationYear = '';
-
+  List<Job> get recommendedJobs => _recommendedJobs;
   String get email => _email;
   String get phone => _phone;
   String get github => _github;
@@ -277,8 +284,27 @@ Future<void> fetchProfile() async {
     _userId = prefs.getString('user_id') ?? '';
     if (_userId.isNotEmpty) {
       fetchJobsByUser(); // Fetch jobs if user ID is available
+      fetchRecommendedJobs();
     }
     notifyListeners();
   }
-
+ Future<void> fetchRecommendedJobs() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await fetchUserIdFromPreferences();
+      if (_userId.isEmpty) {
+        throw Exception('User ID is empty');
+      }
+      final jobs = await UserApiService.recommendJobsBasedOnSkills(_userId);
+      _recommendedJobs = jobs;
+      _errorMessage = '';
+    } catch (e) {
+      _errorMessage = e.toString();
+      _recommendedJobs = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

@@ -435,6 +435,37 @@ static Future<String?> fetchUserId() async {
     throw Exception('Failed to fetch jobs: ${e.toString()}');
   }
 }
+  static Future<List<Job>> recommendJobsBasedOnSkills(String userId) async {
+    try {
+      if (userId.isEmpty) {
+        throw Exception('User ID is empty');
+      }
+
+      final response = await http.get(
+        Uri.parse("$baseUrl/recommendations/$userId"),
+        headers: {"Content-Type": "application/json"},
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseJson = jsonDecode(response.body);
+        final data = responseJson['recommended_jobs'] as List<dynamic>;
+
+        // Parse the JSON data to create a list of Job objects
+        final jobs = data.map((item) => Job.fromJson(item)).toList();
+
+        return jobs;
+      } else {
+        final responseJson = jsonDecode(response.body);
+        throw Exception('Failed to fetch recommendations: ${responseJson['error']}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Failed to fetch recommendations: ${e.toString()}');
+    }
+  }
 
 
 
