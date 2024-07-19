@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skillssails/model/job_model.dart';
 import 'package:skillssails/model/user_model.dart'; // Adjust this import as per your project structure
 
 class UserApiService {
@@ -106,22 +107,21 @@ static Future<User> authenticateUser(String username, String password) async {
         // Handle nullable fields in the response
         final id = data['_id'] as String?;
         final username = data['username'] as String;
-
-        // Ensure password is handled properly if it's nullable
         final password = data['password'] as String? ?? '';
-
         final email = data['email'] as String? ?? '';
         final phoneNumber = data['phone_number'] as String? ?? '';
         final github = data['github'] as String? ?? '';
         final linkedin = data['linkedin'] as String? ?? '';
         final technicalSkills = List<String>.from(data['technical_skills'] ?? []);
         final professionalSkills = List<String>.from(data['professional_skills'] ?? []);
-        final certification = data['certification'] as Map<String, dynamic>?;
+        final certification = data['certification'] as Map<String, dynamic>? ?? {};
+        final role = data['role'] as String?;
+        final jobs = List<String>.from(data['jobs'] ?? []);
 
         final user = User(
           id: id,
           username: username,
-          password: password, // Assign nullable password with default empty string
+          password: password,
           email: email,
           phoneNumber: phoneNumber,
           github: github,
@@ -129,11 +129,14 @@ static Future<User> authenticateUser(String username, String password) async {
           technicalSkills: technicalSkills,
           professionalSkills: professionalSkills,
           certification: certification,
+          role: role,
+          jobs: jobs,
         );
 
         // Example: Save contact info if email is not null (non-null assertion used)
-        if (user.email != null) {
-          await saveContactInfo(user.email!);
+        if (user.email.isNotEmpty) {
+          await saveContactInfo(user.email);
+
         }
 
         return user; // Return User object if needed
@@ -148,8 +151,7 @@ static Future<User> authenticateUser(String username, String password) async {
   }
 
 
-
-static Future<User> authenticateUserR(String username, String password) async {
+ static Future<User> authenticateUserR(String username, String password) async {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/signinR"),
@@ -177,6 +179,10 @@ static Future<User> authenticateUserR(String username, String password) async {
           role: data['role'] as String?,
         );
 
+        if (user.id != null) {
+          await saveUserId(user.id ?? "");
+        }
+
         return user;
       } else {
         final responseJson = jsonDecode(response.body);
@@ -188,10 +194,11 @@ static Future<User> authenticateUserR(String username, String password) async {
     }
   }
 
-static Future<void> saveUserId(String userId) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('user_id', userId);
-}
+  static Future<void> saveUserId(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_id', userId);
+  }
+
   // Send OTP for forgot password
   // Send OTP for forgot password
 // Send OTP for forgot password
@@ -226,16 +233,15 @@ static Future<void> sendOtpForForgotPassword(String contactInfo) async {
   }
 }
 
-
-       static Future<String?> getUserId() async {
-          try {
-            final prefs = await SharedPreferences.getInstance();
-            return prefs.getString('user_id');
-          } catch (e) {
-            print('Error: $e');
-            throw Exception('Failed to get user ID: ${e.toString()}');
-          }
-        }
+  static Future<String?> getUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('user_id');
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Failed to get user ID: ${e.toString()}');
+    }
+  }
 
 static Future<void> validateOtpForForgotPassword(String otpAttempt) async {
   try {
@@ -348,5 +354,88 @@ static Future<void> changePassword(String email, String newPassword) async {
     throw Exception('Failed to update profile: ${e.toString()}');
   }
 }
+  static Future<void> createJob({
+    required String title,
+    required String description,
+    String? datePosted,
+    double? salary,
+    List<String> requirements = const [],
+    String? location,
+    required String userId,
+  }) async {
+    try {
+      final dio = Dio();
+      dio.options.baseUrl = baseUrl;
+      dio.options.connectTimeout = Duration(seconds: 5);
+      dio.options.receiveTimeout = Duration(seconds: 3);
+
+      final response = await dio.post(
+        '/create_job',
+        data: {
+          'title': title,
+          'description': description,
+          'date_posted': datePosted,
+          'salary': salary,
+          'requirements': requirements,
+          'location': location,
+          'user_id': userId,
+        },
+      );
+
+      if (response.statusCode == 201) {
+        final data = response.data;
+        print('Job created successfully: $data');
+        // Handle successful creation as needed
+      } else {
+        throw Exception('Failed to create job');
+      }
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Failed to create job: ${e.toString()}');
+    }
+  }
+static Future<String?> fetchUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('user_id');
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Failed to get user ID: ${e.toString()}');
+    }
+  }
+  // Fetch Jobs by User ID
+
+  static Future<List<Job>> fetchJobsByUser(String userId) async {
+  try {
+    if (userId.isEmpty) {
+      throw Exception('User ID is empty');
+    }
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/jobs/$userId"),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as List<dynamic>;
+
+      // Parse the JSON data to create a list of Job objects
+      final jobs = data.map((item) => Job.fromJson(item)).toList();
+
+      return jobs;
+    } else {
+      final responseJson = jsonDecode(response.body);
+      throw Exception('Failed to fetch jobs: ${responseJson['error']}');
+    }
+  } catch (e) {
+    print('Error: $e');
+    throw Exception('Failed to fetch jobs: ${e.toString()}');
+  }
+}
+
+
 
 }

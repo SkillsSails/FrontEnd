@@ -1,15 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:skillssails/model/job_model.dart';
 import 'package:skillssails/model/user_model.dart';
 import 'package:skillssails/services/user_apiservice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart' as Dio;
 
+
 class UserProvider with ChangeNotifier {
   String _userId = '';
   String _username = '';
   String _password = '';
+
     User? _user;
   User? get user => _user;
 
@@ -61,7 +65,9 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-
+  String getUserRole() {
+    return _user?.role ?? '';
+  }
  Future<void> createUserR(String username, String password) async {
     try {
       await UserApiService.createUserR(username, password);
@@ -214,5 +220,65 @@ Future<void> fetchProfile() async {
     throw e; // Pass the error back to the UI
   }
 }
+ List<Job> _jobs = [];
+
+  List<Job> get jobs => _jobs;
+
+  JobProvider() {
+    loadUserId();
+  }
+
+  Future<void> createJob({
+    required String title,
+    required String description,
+    String? datePosted,
+    double? salary,
+    List<String> requirements = const [],
+    String? location,
+  }) async {
+    try {
+      await UserApiService.createJob(
+        title: title,
+        description: description,
+        datePosted: datePosted,
+        salary: salary,
+        requirements: requirements,
+        location: location,
+        userId: _userId,
+      );
+      notifyListeners();
+    } catch (e) {
+      print('Error in createJob: $e');
+      throw Exception('Failed to create job: ${e.toString()}');
+    }
+  }
+
+  Future<void> fetchJobsByUser() async {
+    try {
+      await fetchUserIdFromPreferences();
+      if (_userId.isEmpty) {
+        throw Exception('User ID is empty');
+      }
+
+      _jobs = await UserApiService.fetchJobsByUser(_userId);
+      notifyListeners();
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Failed to fetch jobs: ${e.toString()}');
+    }
+  }
+  Future<void> fetchUserIdFromPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getString('userId') ?? '';
+  }
+
+  Future<void> loadUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getString('user_id') ?? '';
+    if (_userId.isNotEmpty) {
+      fetchJobsByUser(); // Fetch jobs if user ID is available
+    }
+    notifyListeners();
+  }
 
 }

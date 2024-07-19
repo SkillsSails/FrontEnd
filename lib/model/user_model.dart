@@ -9,10 +9,11 @@ class User {
   final String phoneNumber;
   final String github;
   final String linkedin;
-  final List<String>? technicalSkills;
-  final List<String>? professionalSkills;
-  final Map<String, dynamic>? certification;
+  final List<String> technicalSkills;
+  final List<String> professionalSkills;
+  final Map<String, dynamic> certification;
   final String? role;
+  final List<String> jobs;
 
   User({
     required this.id,
@@ -22,10 +23,15 @@ class User {
     required this.phoneNumber,
     required this.github,
     required this.linkedin,
-    this.technicalSkills,
-    this.professionalSkills,
-    this.certification,
+    this.technicalSkills = const [],
+    this.professionalSkills = const [],
+    this.certification = const {
+      "organization": null,
+      "name": null,
+      "year": null,
+    },
     this.role,
+    this.jobs = const [],
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -39,8 +45,13 @@ class User {
       linkedin: json['linkedin'] as String? ?? '',
       technicalSkills: List<String>.from(json['technical_skills'] ?? []),
       professionalSkills: List<String>.from(json['professional_skills'] ?? []),
-      certification: json['certification'] as Map<String, dynamic>?,
+      certification: Map<String, dynamic>.from(json['certification'] ?? {
+        "organization": null,
+        "name": null,
+        "year": null,
+      }),
       role: json['role'] as String?,
+      jobs: List<String>.from(json['jobs'] ?? []),
     );
   }
 
@@ -57,6 +68,7 @@ class User {
       'professional_skills': professionalSkills,
       'certification': certification,
       'role': role,
+      'jobs': jobs,
     };
   }
 }
