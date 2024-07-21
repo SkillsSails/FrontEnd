@@ -1,36 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skillssails/providers/user_provider.dart'; // Update with your actual user model import
+import 'job_card.dart'; // Update with your actual job card import
 
-class FavoritesPage extends StatelessWidget {
+class FavoritesPage extends StatefulWidget {
+  @override
+  _FavoritesPageState createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.fetchTopRatedReviews(); // Fetch reviews after widget is built
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: 10, // Replace with the number of favorite items
-          itemBuilder: (context, index) {
-            return Card(
-              elevation: 4,
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                leading: Icon(Icons.favorite, color: Colors.red), // Customize the icon
-                title: Text('Favorite Item $index'), // Replace with your item data
-                subtitle: Text('Description of Favorite Item $index'), // Replace with your item data
-                trailing: IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red), // Customize the delete icon
-                  onPressed: () {
-                    // Handle delete action
-                  },
-                ),
-                onTap: () {
-                  // Handle item tap action
-                },
-              ),
+        child: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            if (userProvider.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (userProvider.errorMessage.isNotEmpty) {
+              return Center(child: Text(userProvider.errorMessage));
+            }
+            return ListView.builder(
+              itemCount: userProvider.topRatedReviews.length,
+              itemBuilder: (context, index) {
+                final review = userProvider.topRatedReviews[index];
+                final user = userProvider.getUserById(review.userId);
+                final job = userProvider.getJobById(review.jobId);
+
+                // Log review data for debugging
+                print('Displaying review: $review');
+
+                return JobCard(review: review, user: user, job: job);
+              },
             );
           },
         ),
       ),
-    
     );
   }
 }

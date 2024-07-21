@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skillssails/model/job_model.dart';
 import 'package:skillssails/model/user_model.dart'; // Adjust this import as per your project structure
+import 'package:skillssails/model/review_model.dart'; // Adjust this import as per your project structure
 
 class UserApiService {
   static const String baseUrl = "http://10.0.2.2:5000/auth";
@@ -403,6 +404,24 @@ static Future<String?> fetchUserId() async {
       throw Exception('Failed to get user ID: ${e.toString()}');
     }
   }
+  
+
+    static Future<Job> fetchJobById(String jobId) async {
+    final response = await http.get(Uri.parse('$baseUrl/jobbs/$jobId'));
+    if (response.statusCode == 200) {
+      return Job.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load job');
+    }
+  }
+    static Future<User> fetchUserById(String userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
+    if (response.statusCode == 200) {
+      return User.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load user');
+    }
+  }
   // Fetch Jobs by User ID
 
   static Future<List<Job>> fetchJobsByUser(String userId) async {
@@ -466,7 +485,94 @@ static Future<String?> fetchUserId() async {
       throw Exception('Failed to fetch recommendations: ${e.toString()}');
     }
   }
+static Future<void> addReview({
+  required String jobId,
+  required String userId,
+  required int rating,
+  required String comment,
+}) async {
+  try {
+    // Print IDs for debugging
+    print('jobId: $jobId');
+    print('userId: $userId');
+
+    final review = {
+      'job_id': jobId,
+      'user_id': userId,
+      'rating': rating,
+      'comment': comment,
+      'date': DateTime.now().toIso8601String(),
+    };
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/reviews/post"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(review),
+    );
+
+    if (response.statusCode == 201) {
+      print('Review added successfully');
+    } else {
+      final responseJson = jsonDecode(response.body);
+      throw Exception('Failed to add review: ${responseJson['error']}');
+    }
+  } catch (e) {
+    print('Error: $e');
+    throw Exception('Failed to add review: ${e.toString()}');
+  }
+}
 
 
+static Future<List<Review>> getTopRatedReviews() async {
+  try {
+    final response = await http.get(
+      Uri.parse("$baseUrl/reviews/top-rated"),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final reviewsJson = data['reviews'] as List<dynamic>;
+
+      // Log the raw JSON data for debugging
+      for (var reviewJson in reviewsJson) {
+        print('Review JSON: $reviewJson');
+      }
+
+      // Convert each review JSON to a Review object
+      return reviewsJson.map((reviewJson) {
+        try {
+          return Review.fromJson(reviewJson as Map<String, dynamic>);
+        } catch (e) {
+          print('Error parsing review JSON: $reviewJson\n$e');
+          throw e;
+        }
+      }).toList();
+    } else {
+      final responseJson = jsonDecode(response.body);
+      throw Exception('Failed to fetch top-rated reviews: ${responseJson['error']}');
+    }
+  } catch (e) {
+    print('Error: $e');
+    throw Exception('Failed to fetch top-rated reviews: ${e.toString()}');
+  }
+}
+
+
+ static Future<List<Job>> getJobs() async {
+    final dio = Dio();
+    try {
+      final response = await dio.get("$baseUrl/jobs");
+      if (response.statusCode == 200) {
+        List<dynamic> data = response.data;
+        return data.map((job) => Job.fromJson(job)).toList();
+      } else {
+        throw Exception('Failed to load jobs: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('Error in getJobs: $e');
+      throw Exception('Failed to load jobs: ${e.toString()}');
+    }
+  }
 
 }

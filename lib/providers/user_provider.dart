@@ -2,30 +2,43 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import 'package:skillssails/model/job_model.dart';
+import 'package:skillssails/model/review_model.dart';
 import 'package:skillssails/model/user_model.dart';
 import 'package:skillssails/services/user_apiservice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart' as Dio;
 
-
 class UserProvider with ChangeNotifier {
   String _userId = '';
   String _username = '';
   String _password = '';
+
   List<Job> _recommendedJobs = [];
   bool _isLoading = false;
   String _errorMessage = '';
+  List<Review> _topRatedReviews = [];
+  Map<String, User> _users = {};
+  Map<String, Job> _jobs = {}; // Changed to Map
+  List<Review> _reviews = [];
+  User? _user;
+    List<Job> get jobs => _jobs.values.toList(); // Getter for jobs as a list
 
 
-    User? _user;
+  List<Review> get reviews => _reviews;
   User? get user => _user;
+  User? getUserById(String? userId) => _users[userId];
+  Job? getJobById(String? jobId) => _jobs[jobId]; // Simplified lookup
+
 
   String get userId => _userId;
   String get username => _username;
   String get password => _password;
-    bool get isLoading => _isLoading;
+  bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
+  List<Review> get topRatedReviews => _topRatedReviews;
+  List<Job> get recommendedJobs => _recommendedJobs;
 
   String _email = '';
   String _phone = '';
@@ -36,7 +49,6 @@ class UserProvider with ChangeNotifier {
   String _certificationOrganization = '';
   String _certificationName = '';
   String _certificationYear = '';
-  List<Job> get recommendedJobs => _recommendedJobs;
   String get email => _email;
   String get phone => _phone;
   String get github => _github;
@@ -49,6 +61,7 @@ class UserProvider with ChangeNotifier {
 
   UserProvider() {
     loadUserDetailsLocally();
+    fetchTopRatedReviews();
   }
 
   Future<void> createUser(String username, String password, String filePath) async {
@@ -71,11 +84,95 @@ class UserProvider with ChangeNotifier {
       throw Exception('Failed to register user: ${e.toString()}');
     }
   }
+Future<void> submitReview({
+  required String jobId,
+  required String userId, // Ensure this is here
+  required int rating,
+  required String comment,
+}) async {
+  try {
+    // Fetch userId from the authentication service or user session
+    final userId = await fetchUserId();
+
+    if (userId.isEmpty) {
+      throw Exception('User ID is not available.');
+    }
+
+    // Call addReview with the fetched userId
+    await UserApiService.addReview(
+      jobId: jobId,
+      userId: userId,
+      rating: rating,
+      comment: comment,
+    );
+
+    // Optionally, handle success and fetch updated reviews
+    await fetchTopRatedReviews();
+  } catch (e) {
+    print('Error submitting review: $e');
+  }
+}
+
+
+
+Future<void> fetchTopRatedReviews() async {
+    try {
+      final reviews = await UserApiService.getTopRatedReviews();
+      _topRatedReviews = reviews;
+
+      // Fetch user and job details for each review
+      for (var review in _topRatedReviews) {
+        if (review.userId != null) {
+          try {
+            final user = await UserApiService.fetchUserById(review.userId!);
+            _users[review.userId!] = user;
+          } catch (e) {
+            print('Error fetching user for review: $e');
+          }
+        }
+        if (review.jobId != null) {
+          try {
+            final job = await UserApiService.fetchJobById(review.jobId!);
+            _jobs[review.jobId!] = job;
+          } catch (e) {
+            print('Error fetching job for review: $e');
+          }
+        }
+      }
+
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching top-rated reviews: $e');
+      _errorMessage = 'Failed to fetch top-rated reviews: ${e.toString()}';
+      notifyListeners();
+    }
+  }
+
+
+Future<void> fetchUserProfileAndJobs() async {
+    try {
+      if (_userId.isEmpty) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        _userId = prefs.getString('userId') ?? '';
+      }
+      if (_userId.isEmpty) {
+        throw Exception('User ID is empty');
+      }
+      _user = await UserApiService.fetchUserById(_userId);
+      notifyListeners();
+      
+      await fetchJobsByUser();
+    } catch (e) {
+      throw Exception('Failed to fetch user profile: ${e.toString()}');
+    }
+  }
+
 
   String getUserRole() {
     return _user?.role ?? '';
   }
- Future<void> createUserR(String username, String password) async {
+
+  Future<void> createUserR(String username, String password) async {
     try {
       await UserApiService.createUserR(username, password);
 
@@ -89,7 +186,8 @@ class UserProvider with ChangeNotifier {
       throw Exception('Failed to register recruiter: ${e.toString()}');
     }
   }
-Future<User> authenticateUserR(String username, String password) async {
+
+  Future<User> authenticateUserR(String username, String password) async {
     try {
       final User user = await UserApiService.authenticateUserR(username, password);
       _userId = user.id ?? '';
@@ -104,7 +202,6 @@ Future<User> authenticateUserR(String username, String password) async {
     }
   }
 
-
   Future<void> saveUserDetailsLocally() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', _userId);
@@ -113,7 +210,7 @@ Future<User> authenticateUserR(String username, String password) async {
     notifyListeners();
   }
 
-   Future<void> loadUserDetailsLocally() async {
+  Future<void> loadUserDetailsLocally() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _userId = prefs.getString('userId') ?? '';
     if (_userId.isNotEmpty) {
@@ -137,7 +234,6 @@ Future<User> authenticateUserR(String username, String password) async {
     }
   }
 
-
   Future<User> getUserDetails() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userId = prefs.getString('userId') ?? '';
@@ -154,7 +250,7 @@ Future<User> authenticateUserR(String username, String password) async {
     }
   }
 
- Future<void> validateOtpForForgotPassword(String otp) async {
+  Future<void> validateOtpForForgotPassword(String otp) async {
     try {
       await UserApiService.validateOtpForForgotPassword(otp);
       notifyListeners();
@@ -164,16 +260,17 @@ Future<User> authenticateUserR(String username, String password) async {
     }
   }
 
-Future<void> changePassword(String email, String newPassword) async {
-  try {
-    await UserApiService.changePassword(email, newPassword);
-    notifyListeners();
-  } catch (e) {
-    print('Error: $e');
-    throw Exception('Failed to change password: ${e.toString()}');
+  Future<void> changePassword(String email, String newPassword) async {
+    try {
+      await UserApiService.changePassword(email, newPassword);
+      notifyListeners();
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Failed to change password: ${e.toString()}');
+    }
   }
-}
-Future<void> fetchProfile() async {
+
+  Future<void> fetchProfile() async {
     try {
       if (_userId.isEmpty) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -190,8 +287,6 @@ Future<void> fetchProfile() async {
       throw Exception('Failed to fetch user profile: ${e.toString()}');
     }
   }
-
-
 
   Future<void> saveUserIdLocally(String userId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -217,94 +312,98 @@ Future<void> fetchProfile() async {
       throw Exception('Failed to fetch user profile: ${e.toString()}');
     }
   }
+
   Future<void> updateUserProfile(Map<String, dynamic> profileData) async {
-  try {
-    await UserApiService.updateUserProfile(_userId, profileData);
-    // Optionally update local user state if needed
-    notifyListeners();
-  } catch (e) {
-    print('Error: $e');
-    throw e; // Pass the error back to the UI
-  }
-}
- List<Job> _jobs = [];
-
-  List<Job> get jobs => _jobs;
-
-  JobProvider() {
-    loadUserId();
+    try {
+      await UserApiService.updateUserProfile(_userId, profileData);
+      // Optionally update local user state if needed
+      notifyListeners();
+    } catch (e) {
+      print('Error: $e');
+      throw e; // Pass the error back to the UI
+    }
   }
 
-  Future<void> createJob({
+Future<void> createJob({
     required String title,
     required String description,
-    String? datePosted,
-    double? salary,
-    List<String> requirements = const [],
-    String? location,
+    required String location,
+    required String userId,
+    required double salary,
+    required DateTime datePosted,
+    required List<String> requirements,
   }) async {
     try {
+      // Convert DateTime to String
+      final String formattedDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(datePosted);
+
       await UserApiService.createJob(
         title: title,
         description: description,
-        datePosted: datePosted,
-        salary: salary,
-        requirements: requirements,
         location: location,
-        userId: _userId,
+        userId: userId,
+        salary: salary,
+        datePosted: formattedDate,
+        requirements: requirements,
       );
+
+     Future<void> fetchJobs() async {
+    try {
+      List<Job> jobsList = await UserApiService.getJobs();
+      _jobs = { for (var job in jobsList) job.id : job }; // Populate the map
       notifyListeners();
+    } catch (e) {
+      print('Error fetching jobs: $e');
+      // Handle error as needed
+    }
+  }
+
+
+
+      // Fetch jobs again to ensure the list is up-to-date
+      await fetchJobs();
     } catch (e) {
       print('Error in createJob: $e');
       throw Exception('Failed to create job: ${e.toString()}');
     }
-  }
-
-  Future<void> fetchJobsByUser() async {
+  } 
+   Future<void> fetchJobsByUser() async {
     try {
       await fetchUserIdFromPreferences();
       if (_userId.isEmpty) {
         throw Exception('User ID is empty');
       }
 
-      _jobs = await UserApiService.fetchJobsByUser(_userId);
+      List<Job> jobList = await UserApiService.fetchJobsByUser(_userId);
+
+      // Convert the list to a map
+      _jobs = { for (var job in jobList) job.id: job };
+
       notifyListeners();
     } catch (e) {
       print('Error: $e');
       throw Exception('Failed to fetch jobs: ${e.toString()}');
     }
   }
+
   Future<void> fetchUserIdFromPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     _userId = prefs.getString('userId') ?? '';
   }
 
-  Future<void> loadUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    _userId = prefs.getString('user_id') ?? '';
-    if (_userId.isNotEmpty) {
-      fetchJobsByUser(); // Fetch jobs if user ID is available
-      fetchRecommendedJobs();
-    }
-    notifyListeners();
-  }
- Future<void> fetchRecommendedJobs() async {
-    _isLoading = true;
-    notifyListeners();
+Future<String> fetchUserId() async {
+  // Replace with your actual implementation to fetch userId from preferences
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('userId') ?? ''; // Return empty string if userId is not found
+}
+
+  Future<void> fetchRecommendedJobs() async {
     try {
-      await fetchUserIdFromPreferences();
-      if (_userId.isEmpty) {
-        throw Exception('User ID is empty');
-      }
-      final jobs = await UserApiService.recommendJobsBasedOnSkills(_userId);
-      _recommendedJobs = jobs;
-      _errorMessage = '';
-    } catch (e) {
-      _errorMessage = e.toString();
-      _recommendedJobs = [];
-    } finally {
-      _isLoading = false;
+      _recommendedJobs = await UserApiService.recommendJobsBasedOnSkills(_userId);
       notifyListeners();
+    } catch (e) {
+      print('Error in fetchRecommendedJobs: $e');
+      throw Exception('Failed to fetch recommended jobs: ${e.toString()}');
     }
   }
 }

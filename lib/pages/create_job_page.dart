@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' as GetX;
 import 'package:provider/provider.dart';
-import 'package:skillssails/providers/user_provider.dart'; // Import your JobProvider
+import 'package:skillssails/providers/user_provider.dart';
 
 class CreateJobPage extends StatefulWidget {
   @override
@@ -20,10 +20,11 @@ class _CreateJobPageState extends State<CreateJobPage> {
   Future<void> _createJob() async {
     final String title = titleController.text;
     final String description = descriptionController.text;
-    final double? salary = salaryController.text.isNotEmpty ? double.tryParse(salaryController.text) : null;
-    final String? location = locationController.text.isNotEmpty ? locationController.text : null;
+    final double salary = salaryController.text.isNotEmpty ? double.tryParse(salaryController.text) ?? 0 : 0;
+    final String location = locationController.text.isNotEmpty ? locationController.text : '';
     final List<String> requirements = requirementsController.text.split(',').map((e) => e.trim()).toList();
-    
+    final DateTime datePosted = DateTime.now(); // Current date and time
+
     if (title.isEmpty || description.isEmpty) {
       return; // Handle validation errors as needed
     }
@@ -41,6 +42,8 @@ class _CreateJobPageState extends State<CreateJobPage> {
         salary: salary,
         requirements: requirements,
         location: location,
+        datePosted: datePosted,
+        userId: jobProvider.userId, // Assuming you have a userId in your jobProvider
       );
 
       GetX.Get.toNamed('/jobs_list'); // Navigate to the job list page after creation
