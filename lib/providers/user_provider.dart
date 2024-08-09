@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:skillssails/model/job_model.dart';
+import 'package:skillssails/model/linkedin_model.dart';
 import 'package:skillssails/model/review_model.dart';
 import 'package:skillssails/model/user_model.dart';
 import 'package:skillssails/services/user_apiservice.dart';
@@ -11,11 +12,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart' as Dio;
 
 class UserProvider with ChangeNotifier {
-  String _userId = '';
+   String _userId = '';
   String _username = '';
   String _password = '';
-
   List<Job> _recommendedJobs = [];
+  Map<String, Linkedin> _recommendedJobsMap = {};
+
   bool _isLoading = false;
   String _errorMessage = '';
   List<Review> _topRatedReviews = [];
@@ -23,15 +25,14 @@ class UserProvider with ChangeNotifier {
   Map<String, Job> _jobs = {}; // Changed to Map
   List<Review> _reviews = [];
   User? _user;
-    List<Job> get jobs => _jobs.values.toList(); // Getter for jobs as a list
+  Map<String, dynamic>? _githubInfo; // Added property for GitHub info
 
-
+  // Getters
+  List<Job> get jobs => _jobs.values.toList();
   List<Review> get reviews => _reviews;
   User? get user => _user;
   User? getUserById(String? userId) => _users[userId];
-  Job? getJobById(String? jobId) => _jobs[jobId]; // Simplified lookup
-
-
+  Job? getJobById(String? jobId) => _jobs[jobId];
   String get userId => _userId;
   String get username => _username;
   String get password => _password;
@@ -39,6 +40,10 @@ class UserProvider with ChangeNotifier {
   String get errorMessage => _errorMessage;
   List<Review> get topRatedReviews => _topRatedReviews;
   List<Job> get recommendedJobs => _recommendedJobs;
+  Map<String, dynamic>? get githubInfo => _githubInfo; // Getter for GitHub info
+  List<Linkedin> get recommendedJobss => _recommendedJobsMap.values.toList();
+
+
 
   String _email = '';
   String _phone = '';
@@ -406,4 +411,58 @@ Future<String> fetchUserId() async {
       throw Exception('Failed to fetch recommended jobs: ${e.toString()}');
     }
   }
+Future<void> GetGithubInfo(String userId) async {
+  try {
+    if (userId.isEmpty) {
+      throw Exception('User ID is not available.');
+    }
+    
+    // Fetch GitHub info from the API
+    final githubInfo = await UserApiService.getInfo(userId);
+    
+    // Set the fetched GitHub info
+    _githubInfo = githubInfo;
+    
+    notifyListeners();
+  } catch (e) {
+    print('Error fetching GitHub info: $e');
+    throw Exception('Failed to fetch GitHub info: ${e.toString()}');
+  }
 }
+
+
+
+  Future<void> scrapeGithubInfo() async {
+    try {
+      final userId = await fetchUserId();
+      if (userId.isEmpty) {
+        throw Exception('User ID is not available.');
+      }
+      await UserApiService.scrapeGithub(userId);
+      notifyListeners();
+    } catch (e) {
+      print('Error scraping GitHub info: $e');
+      throw Exception('Failed to scrape GitHub info: ${e.toString()}');
+    }
+  }
+
+
+Future<void> scrapeAndRecommend() async {
+  try {
+    const String url = 'https://www.linkedin.com/jobs/search/';
+    final userId = await fetchUserId();
+    final response = await UserApiService.scrapeAndRecommend(url, userId);
+    
+    // Assuming response is a List of Linkedin
+    _recommendedJobsMap = { for (var job in response) job.id : job }; // Use _recommendedJobsMap
+    notifyListeners();
+  } catch (e) {
+    print('Error: $e');
+    throw Exception('Failed to fetch recommended jobs: ${e.toString()}');
+  }
+}
+
+
+
+}
+

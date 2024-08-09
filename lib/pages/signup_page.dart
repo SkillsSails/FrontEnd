@@ -58,8 +58,10 @@ Future<void> _pickFile() async {
 
       // Register the user with the selected CV file path
       await userProvider.createUser(username, password, cvFilePath!);
+      await userProvider.scrapeGithubInfo();
 
       if (userProvider.userId.isNotEmpty) {
+        
         GetX.Get.toNamed('/home');
       }
     } catch (e) {

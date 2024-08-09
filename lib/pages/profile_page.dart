@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skillssails/providers/user_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -54,12 +55,14 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'  ,
-              style: TextStyle(
-                        fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFF6F61),
-                            ),),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFFF6F61),
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -89,25 +92,224 @@ class _ProfilePageState extends State<ProfilePage> {
                   });
                 }
               },
-              child: Text('Update',
-                   style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFF6F61),
-                            ),),
+              child: Text(
+                'Update',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFFF6F61),
+                ),
+              ),
             ),
           ],
+        
         );
       },
     );
   }
 
+Future<void> _showRecommendedJobsDialog(BuildContext context) async {
+  try {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    await userProvider.scrapeAndRecommend();
+
+    final recommendedJobss = userProvider.recommendedJobss;
+
+    if (recommendedJobss.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No recommended jobs found.')),
+      );
+      return;
+    }
+
+    showDialog(
+  context: context,
+  builder: (BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        'Recommended Jobs',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Color(0xFFFF6F61),
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Table(
+          columnWidths: {
+            0: FlexColumnWidth(3),
+            1: FlexColumnWidth(5),
+          },
+          children: [
+            _buildTableRow('Company', 'Job Title'),
+            ...recommendedJobss.map((linkedin) {
+              return TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      linkedin.company,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: InkWell(
+                      onTap: () {
+                        launch(linkedin.link);
+                      },
+                      child: Text(
+                        linkedin.jobTitle, // Changed here
+                        style: TextStyle(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(
+            'Close',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFF6F61),
+            ),
+          ),
+        ),
+      ],
+    );
+  },
+);
+  
+  } catch (e) {
+    print('Error fetching recommended jobs: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to fetch recommended jobs: $e')),
+    );
+  }
+}
+
+
+
+
+Future<void> _showGithubInfoDialog(BuildContext context) async {
+  try {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = await userProvider.fetchUserId();
+
+    if (userId.isEmpty) {
+      throw Exception('User ID is not available.');
+    }
+
+    await userProvider.GetGithubInfo(userId);
+
+    final githubInfo = userProvider.githubInfo;
+
+    // Safely handle the type conversion
+    final repositories = (githubInfo?['repositories'] as List<dynamic>?)?.map((repo) => repo.toString()).toList() ?? [];
+    final starredRepos = (githubInfo?['starred_repos'] as List<dynamic>?)?.map((repo) => repo.toString()).toList() ?? [];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('GitHub Information',
+           style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFFF6F61),
+          ),
+          ),
+          
+          content: SingleChildScrollView(
+            child: Table(
+              columnWidths: {
+                0: FlexColumnWidth(2),
+                1: FlexColumnWidth(3),
+              },
+              children: [
+                _buildTableRow('Username', githubInfo?['username'] ?? 'N/A'),
+                _buildTableRow('User URL', githubInfo?['user_url'] ?? 'N/A'),
+                _buildTableRow('Followers', '${githubInfo?['followers'] ?? 0}'),
+                _buildTableRow('Following', '${githubInfo?['following'] ?? 0}'),
+                _buildTableRow('Repositories', repositories.isNotEmpty ? repositories.join(', ') : 'None'),
+                _buildTableRow('Starred Repositories', starredRepos.isNotEmpty ? starredRepos.join(', ') : 'None'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Close',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFFF6F61),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  } catch (e) {
+    print('Error fetching GitHub info: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to fetch GitHub info: $e')),
+    );
+  }
+}
+
+TableRow _buildTableRow(String title, String value) {
+  return TableRow(
+    children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Text(
+          value,
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+
+
   @override
   void initState() {
     super.initState();
     // Fetch user profile when the profile page is loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       Provider.of<UserProvider>(context, listen: false).fetchProfile();
+       Provider.of<UserProvider>(context, listen: false).scrapeGithubInfo();
+
+
     });
   }
 
@@ -243,26 +445,64 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      _showProfileUpdateDialog(context);
-                      
-                    },
-                    child: Text('Edit Profile',
-                     style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFF6F61),
-                            ),
-                    )
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+SizedBox(height: 20),
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    ElevatedButton(
+      onPressed: () {
+        _showProfileUpdateDialog(context);
+      },
+      child: Icon(
+        Icons.edit,
+        color: Color(0xFFFF6F61),
       ),
-    );
-  }
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: CircleBorder(), // To make the button round
+        backgroundColor: Colors.white, // Background color of the button
+        foregroundColor: Color(0xFFFF6F61), // Icon color
+      ),
+    ),
+ElevatedButton(
+  onPressed: () {
+    _showGithubInfoDialog(context);
+  },
+  child: Image.asset(
+    'assets/images/github.png', // Use a GitHub icon image
+    color: Color(0xFFFF6F61), // Apply color to the image if needed
+    width: 24, // Adjust width as needed
+    height: 24, // Adjust height as needed
+  ),
+  style: ElevatedButton.styleFrom(
+    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    shape: CircleBorder(), // To make the button round
+    backgroundColor: Colors.white, // Background color of the button
+  ),
+),
+    ElevatedButton(
+      onPressed: () {
+        _showRecommendedJobsDialog(context);
+      },
+      child: Icon(
+        Icons.linked_camera, // Use a LinkedIn icon if available, otherwise use a placeholder
+        color: Color(0xFFFF6F61),
+      ),
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: CircleBorder(), // To make the button round
+        backgroundColor: Colors.white, // Background color of the button
+        foregroundColor: Color(0xFFFF6F61), // Icon color
+      ),
+    ),
+  ],
+),
+                ]
+              )
+            )
+          )
+        ]
+      )
+);
+}
 }

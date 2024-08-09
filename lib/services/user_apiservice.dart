@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skillssails/model/github_info_model.dart';
 import 'package:skillssails/model/job_model.dart';
+import 'package:skillssails/model/linkedin_model.dart';
 import 'package:skillssails/model/user_model.dart'; // Adjust this import as per your project structure
 import 'package:skillssails/model/review_model.dart'; // Adjust this import as per your project structure
 
@@ -574,5 +577,66 @@ static Future<List<Review>> getTopRatedReviews() async {
       throw Exception('Failed to load jobs: ${e.toString()}');
     }
   }
+  // Method to fetch GitHub info by user ID from backend
 
+
+  // Method to save GitHub info to backend
+
+
+
+  static Future<Map<String, dynamic>> getInfo(String userId) async {
+    // Example API request
+    final response = await Dio().get('$baseUrl/github_info/$userId');
+    
+    if (response.statusCode == 200) {
+      return response.data; // This should be the GitHub info
+    } else {
+      throw Exception('Failed to load GitHub info');
+    }
+  }
+  static Future<void> scrapeGithub(String userId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/scrape_github/$userId'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to scrape GitHub data');
+    }
+  }
+
+static Future<List<Linkedin>> scrapeAndRecommend(String url, String userId) async {
+  try {
+    // Prepare the request URL
+    String requestUrl = '$baseUrl/scrape_and_recommend/$userId?url=$url';
+
+    final response = await http.get(
+      Uri.parse(requestUrl),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final responseJson = jsonDecode(response.body);
+      final data = responseJson['job_details'] as List<dynamic>;
+
+      // Parse the JSON data to create a list of Linkedin objects
+      return data.map((item) => Linkedin.fromJson(item)).toList();
+    } else {
+      final responseJson = jsonDecode(response.body);
+      throw Exception('Failed to fetch recommended jobs: ${responseJson['error']}');
+    }
+  } catch (e) {
+    print('Error: $e');
+    throw Exception('Failed to fetch recommended jobs: ${e.toString()}');
+  }
+}
+
+
+
+  
+
+
+  
 }
