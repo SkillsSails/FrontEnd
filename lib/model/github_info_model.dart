@@ -49,4 +49,5 @@ class GithubInfo {
       '_id': id,
     };
   }
+  
 }

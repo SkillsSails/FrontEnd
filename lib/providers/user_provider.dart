@@ -16,6 +16,10 @@ class UserProvider with ChangeNotifier {
   String _username = '';
   String _password = '';
   List<Job> _recommendedJobs = [];
+Map<String, User> _freelancers = {};
+Map<String, User> get freelancers => _freelancers;
+
+
   Map<String, Linkedin> _recommendedJobsMap = {};
 
   bool _isLoading = false;
@@ -462,7 +466,25 @@ Future<void> scrapeAndRecommend() async {
   }
 }
 
+Future<void> getFreelancers() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final freelancersList = await UserApiService.getFreelancers();
+      _freelancers = {
+        for (var u in freelancersList)
+          if (u.id != null) u.id!: u
+      };
+      _errorMessage = '';
+    } catch (e) {
+      print('Error fetching freelancers: $e');
+      _errorMessage = 'Failed to fetch freelancers: ${e.toString()}';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
 
 }
-

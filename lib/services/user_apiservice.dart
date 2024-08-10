@@ -633,10 +633,20 @@ static Future<List<Linkedin>> scrapeAndRecommend(String url, String userId) asyn
   }
 }
 
+static Future<List<User>> getFreelancers() async {
+    final response = await http.get(Uri.parse('$baseUrl/freelancers'));
 
-
-  
-
-
-  
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => User.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load freelancers');
+    }
+  }
 }
+
+
+  
+
+
+  

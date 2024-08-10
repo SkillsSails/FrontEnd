@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skillssails/pages/freelancers_list.dart';
 import 'package:skillssails/pages/job_list_page.dart';
 import 'package:skillssails/pages/profile_page.dart';
 import 'package:skillssails/pages/create_job_page.dart';
@@ -92,7 +93,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _recruiterPages = [
     CreateJobPage(),
     JobsListPage(),
- 
+    FreelancersListPage(),
   ];
 
   @override
